@@ -43,6 +43,8 @@ public:
 
 	eline_vetex_type line_vetex_type(const vector2 &p)const;
 
+	eline_vetex_type line_vetex_type1(const vector2 &p) const;
+
 	eline_line_type line_line_type(const line2D &other,vector2& result);
 
 	bool equals(const line2D &other) const;

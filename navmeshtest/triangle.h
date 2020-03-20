@@ -49,12 +49,12 @@ protected:
 	void clear();
 
 protected:
-	vector2 	   m_A;
-	vector2  	   m_B;
-	vector2 	   m_C;
-	vector2        m_center;
+	vector2 m_A;
+	vector2 m_B;
+	vector2 m_C;
+	vector2 m_center;
+	int m_flag;
 	vector<line2D*> m_sides;
-	int 		   m_flag;
 };
 
 #endif

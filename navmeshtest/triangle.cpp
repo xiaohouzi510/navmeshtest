@@ -26,15 +26,15 @@ const vector2& triangle::get_vertex_by_index(int index)
 {
 	switch(index)
 	{
-		case 0:
+	case 0:
 		{
 			return m_A;
 		}
-		case 1:
+	case 1:
 		{
 			return m_B;
 		}
-		case 2:
+	case 2:
 		{
 			return m_C;
 		}

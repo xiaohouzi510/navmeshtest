@@ -84,7 +84,7 @@ public:
 	vector2 m_position;
 	cell*   m_cell;
 
-	waypoint(cell *cll,vector2 pos)
+	waypoint(cell *cll,const vector2 &pos)
 	{
 		m_position = pos;
 		m_cell     = cll;

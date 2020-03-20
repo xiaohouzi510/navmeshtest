@@ -38,11 +38,28 @@ void line2D::setB(vector2 pos)
 }
 
 //判断点p在直线a点朝向b点方向的位置
-eline_vetex_type line2D::line_vetex_type(const vector2 &p)const
+eline_vetex_type line2D::line_vetex_type(const vector2 &p) const
 {
 	vector2 normal = p.subtract(m_A);
 	float value    = normal.dot(m_N);
 
+	if(value > 0.0001f)
+	{
+		return eon_right;
+	}
+	else if(value < -0.0001f)
+	{
+		return eon_left;
+	}
+
+	return eon_line;
+}
+
+eline_vetex_type line2D::line_vetex_type1(const vector2 &p) const
+{
+	vector2 one = m_B.subtract(m_A);
+	vector2 tow = p.subtract(m_A);
+	float value = one.m_x*tow.m_y - tow.m_x*one.m_y;
 	if(value > 0.0001f)
 	{
 		return eon_right;
@@ -61,8 +78,8 @@ eline_line_type line2D::line_line_type(const line2D &other,vector2& result)
 	const vector2 &otherB = other.getB();
 
 	float denom = (otherB.m_y-otherA.m_y)*(m_B.m_x-m_A.m_x)-(otherB.m_x-otherA.m_x)*(m_B.m_y-m_A.m_y);
-	float u0    = (otherB.m_x-otherA.m_x)*(m_A.m_y-otherA.m_y)-(otherB.m_y-otherA.m_y)*(m_A.m_x-otherA.m_x);
-	float u1    = (otherA.m_x-m_A.m_x)*(m_B.m_y-m_A.m_y)-(otherA.m_y-m_A.m_y)*(m_B.m_x-m_A.m_x);
+	float u0 = (otherB.m_x-otherA.m_x)*(m_A.m_y-otherA.m_y)-(otherB.m_y-otherA.m_y)*(m_A.m_x-otherA.m_x);
+	float u1 = (otherA.m_x-m_A.m_x)*(m_B.m_y-m_A.m_y)-(otherA.m_y-m_A.m_y)*(m_B.m_x-m_A.m_x);
 
 	if(denom == 0.0f)
 	{

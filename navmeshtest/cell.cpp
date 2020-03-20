@@ -110,6 +110,56 @@ void cell::set_arrival_wall(int index)
 	return ;
 }
 
+float cell::get_wall_distance(int index,const vector2 &start)
+{
+	if(index == SIDE_AB)
+	{
+		if(m_arrivalwall == SIDE_BC)
+		{
+			return m_wall_distance[0];
+		}
+		else if(m_arrivalwall == SIDE_CA)
+		{
+			return m_wall_distance[2];
+		}
+		else
+		{
+			return m_wall_midpoint[0].subtract(start).lenght();
+		}
+	}
+	else if(index == SIDE_BC)
+	{
+		if(m_arrivalwall == SIDE_AB)
+		{
+			return m_wall_distance[0];
+		}
+		else if(m_arrivalwall == SIDE_CA)
+		{
+			return m_wall_distance[1];
+		}
+		else
+		{
+			return m_wall_midpoint[1].subtract(start).lenght();
+		}
+	}
+	else if(index == SIDE_CA)
+	{
+		if(m_arrivalwall == SIDE_BC)
+		{
+			return m_wall_distance[1];
+		}
+		else if(m_arrivalwall == SIDE_AB)
+		{
+			return m_wall_distance[2];
+		}
+		else
+		{
+			return m_wall_midpoint[2].subtract(start).lenght();
+		}
+	}
+	return 0;
+}
+
 void cell::reset_cell()
 {
 	m_sessionId = 0;
@@ -118,7 +168,7 @@ void cell::reset_cell()
 	m_g = 0;
 	m_isopen = false;
 	m_parent = NULL;
-	m_arrivalwall = 0;
+	m_arrivalwall = -1;
 }
 
 //Á´½Ó

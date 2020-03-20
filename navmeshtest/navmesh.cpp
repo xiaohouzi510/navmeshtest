@@ -48,7 +48,7 @@ bool compare(cell *left,cell *right)
 }
 
 //构建路径
-bool navmesh::build_path(vector2 start,vector2 end,cell* start_cell,cell* end_cell,vector<vector2> &result)
+bool navmesh::build_path(const vector2 &start,const vector2 &end,cell* start_cell,cell* end_cell,vector<vector2> &result)
 {
 	end_cell->set_session(navmesh::g_path_sessionId);
 	m_openlist.push_back(end_cell);
@@ -61,14 +61,11 @@ bool navmesh::build_path(vector2 start,vector2 end,cell* start_cell,cell* end_ce
 		cell *cur_node = m_openlist.back();
 		m_openlist.pop_back();
 		m_closelist.push_back(cur_node);
-		//cur_node->set_open(false);
-
 		if(cur_node == start_cell)
 		{
 			is_find = true;
 			break;
 		}
-
 		int adjacentId = 0;
 		for(int i = 0;i < 3; ++i)
 		{
@@ -89,26 +86,17 @@ bool navmesh::build_path(vector2 start,vector2 end,cell* start_cell,cell* end_ce
 				adjacent_node->set_session(navmesh::g_path_sessionId);
 				adjacent_node->set_open(true);
 				adjacent_node->set_parent(cur_node);
-
 				adjacent_node->computeHeuristic(start);
-				int index     = abs(i-cur_node->get_arrivalwall());
-				float value_g = cur_node->getG() + adjacent_node->get_wall_distance(index);
+				float value_g = cur_node->getG() + cur_node->get_wall_distance(i,end);
 				adjacent_node->setG(value_g);
-
 				adjacent_node->set_arrival_wall(cur_node->getindex());
-
 				m_openlist.push_back(adjacent_node);
 				push_heap(m_openlist.begin(),m_openlist.end(),compare);
 			}
 			else
 			{
-				if(!adjacent_node->get_open())
-				{
-					continue;
-				}
-
-				int index     = abs(i - cur_node->get_arrivalwall());
-				float value_g = cur_node->getG() + adjacent_node->get_wall_distance(index);
+				int index = cur_node->get_arrivalwall();
+				float value_g = cur_node->getG() + cur_node->get_wall_distance(index,end);
 				if (value_g + adjacent_node->getH() < adjacent_node->getF())
 				{
 					adjacent_node->setG(value_g);
@@ -131,16 +119,17 @@ bool navmesh::build_path(vector2 start,vector2 end,cell* start_cell,cell* end_ce
 }
 
 //构建最短路径
-bool navmesh::get_path(vector2 start,vector2 end,vector<vector2> &result)
+bool navmesh::get_path(const vector2 &start,vector2 end,vector<vector2> &result)
 {
 	vector<cell*> cur_cells;
 	get_cell_path(cur_cells);
 
 	waypoint w_p(cur_cells[0],start);
 	result.push_back(w_p.m_position);
+	int start_index = 0;
 	while(!w_p.m_position.equals(end))
 	{
-		w_p = get_furthest_way_point(w_p,cur_cells,end);
+		get_furthest_way_point(w_p,cur_cells,end,start_index);
 		result.push_back(w_p.m_position);
 	}
 
@@ -174,10 +163,9 @@ void navmesh::get_cell_path(vector<cell*> &result)
 }
 
 //拐角点
-waypoint navmesh::get_furthest_way_point(waypoint &w_p,vector<cell*> &cells,vector2 &end)
+void navmesh::get_furthest_way_point(waypoint &w_p,vector<cell*> &cells,vector2 &end,int &start_index)
 {
-	int start_index 	   = index_cell(cells,w_p.m_cell);
-	int arrivalwall_id     = w_p.m_cell->get_arrivalwall();
+	int arrivalwall_id = w_p.m_cell->get_arrivalwall();
 	const line2D *out_side = w_p.m_cell->get_side(arrivalwall_id);
 	cell *last_cell = w_p.m_cell;
 	vector2 lastA = out_side->getA();
@@ -189,8 +177,6 @@ waypoint navmesh::get_furthest_way_point(waypoint &w_p,vector<cell*> &cells,vect
 	vector2 testB;
 	for(int i = start_index + 1;i < cells.size();++i)
 	{
-		arrivalwall_id  = cells[i]->get_arrivalwall();
-		out_side 		= cells[i]->get_side(arrivalwall_id);
 		if(i == cells.size() - 1)
 		{
 			testA = end;
@@ -198,24 +184,26 @@ waypoint navmesh::get_furthest_way_point(waypoint &w_p,vector<cell*> &cells,vect
 		}
 		else
 		{
+			arrivalwall_id = cells[i]->get_arrivalwall();
+			out_side = cells[i]->get_side(arrivalwall_id);
 			testA = out_side->getA();
 			testB = out_side->getB();
 		}
-
+		
 		if(!lastA.equals(testA))
 		{
 			if(lineB.line_vetex_type(testA) == eon_right)
 			{
-				return waypoint(last_cell,lastB);
+				w_p.m_position = lastB;
+				w_p.m_cell = last_cell;
+				return ;
 			}
-			else
+			else if(lineA.line_vetex_type(testA) != eon_left)
 			{
-				if(lineA.line_vetex_type(testA) != eon_left)
-				{
-					lastA     = testA;
-					last_cell = cells[i];
-					lineA.setB(lastA);
-				}
+				start_index = i;
+				lastA = testA;
+				last_cell = cells[i];
+				lineA.setB(lastA);
 			}
 		}
 
@@ -223,36 +211,22 @@ waypoint navmesh::get_furthest_way_point(waypoint &w_p,vector<cell*> &cells,vect
 		{
 			if(lineA.line_vetex_type(testB) == eon_left)
 			{
-				return waypoint(last_cell,lastA);
+				w_p.m_position = lastA;
+				w_p.m_cell = last_cell;
+				return ;
 			}
-			else
+			else if(lineB.line_vetex_type(testB) != eon_right)
 			{
-				if(lineB.line_vetex_type(testB) != eon_right)
-				{
-					lastB     = testB;
-					last_cell = cells[i];
-					lineB.setB(lastB);
-				}
+				start_index = i;
+				lastB = testB;
+				last_cell = cells[i];
+				lineB.setB(lastB);
 			}
 		}
 	}
-
-	return waypoint(cells[cells.size() - 1],end);
-}
-
-int navmesh::index_cell(vector<cell*> &cells,cell *c_cell)
-{
-	for(int i = 0;i < cells.size();++i)
-	{
-		if(cells[i] != c_cell)
-		{
-			continue;
-		}
-
-		return i;
-	}
-
-	return -1;
+	w_p.m_position = end;
+	w_p.m_cell = cells[cells.size() - 1];
+	return ;
 }
 
 void navmesh::clear()

@@ -63,7 +63,7 @@ public:
 
 	void set_arrival_wall(int index);
 
-	float get_wall_distance(int index){return m_wall_distance[index];}
+	float get_wall_distance(int index,const vector2 &start);
 
 	int get_arrivalwall(){return m_arrivalwall;}
 

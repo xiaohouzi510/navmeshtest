@@ -183,6 +183,7 @@ bool delaunay::findDT(const line2D &line,vector2 &result)
 			if (a1 > angle132)
 			{
 				p3   = allpoint[i];
+				allpoint.erase(allpoint.begin()+i);
 				loop = true;
 				break;
 			}
@@ -201,7 +202,7 @@ bool delaunay::isVisible_point_line(const line2D &line,const vector2 &p)
 	{
 		return false;
 	}
-
+	
 	if(line.line_vetex_type(p) != eon_right)
 	{
 		return false;
